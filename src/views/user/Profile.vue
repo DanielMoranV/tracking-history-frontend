@@ -2,11 +2,13 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useToast } from 'primevue/usetoast';
+import cache from '../../utils/cache';
 
 const toast = useToast();
 const authStore = useAuthStore();
 
 const loading = ref(false);
+const loadingProfile = ref(false);
 const password = ref('');
 const password1 = ref('');
 const dataUser = reactive({
@@ -15,7 +17,8 @@ const dataUser = reactive({
     name: '',
     phone: '',
     email: '',
-    address: ''
+    address: '',
+    id: ''
 });
 const showMessage = (severity, summary) => {
     loading.value = false;
@@ -33,34 +36,33 @@ const updatePassword = async () => {
     } else if (password.value.length < 6) {
         showMessage('warn', 'La contraseña debe tener al menos 6 caracteres');
     } else {
-        const payload = { password: password.value };
-        const response = await authStore.updateAccessUser(payload);
-        if (response == 1) {
-            toast.add({ severity: 'success', summary: 'Contraseña actualizada', life: 4000 });
-            password.value = '';
-            password1.value = '';
-        }
+        const payload = { password: password.value, id: dataUser.id };
+        await authStore.updateDataUser(payload);
+        toast.add({ severity: 'success', summary: 'Contraseña actualizada', life: 4000 });
+        password.value = '';
+        password1.value = '';
     }
 
     loading.value = false;
 };
 const updateDataUser = async () => {
-    loading.value = true;
+    loadingProfile.value = true;
     const payload = {
         email: dataUser.email,
-        phone: dataUser.phone
+        phone: dataUser.phone,
+        id: dataUser.id
     };
+    console.log(payload);
     await authStore.updateDataUser(payload);
-    showMessage('success', 'Contraseña actualizada');
+    showMessage('success', 'Información de perfil actualizada correctamente');
     password.value = '';
     password1.value = '';
 
-    loading.value = false;
+    loadingProfile.value = false;
 };
 
 onMounted(async () => {
-    await authStore.currentUser();
-    const userData = authStore.user.user;
+    const userData = cache.getItem('user');
     Object.assign(dataUser, userData);
 });
 </script>
@@ -87,9 +89,13 @@ onMounted(async () => {
                 </div>
                 <div class="field">
                     <label for="phone">Teléfono</label>
-                    <InputText id="phone" type="text" v-model="dataUser.phone" />
+                    <InputText id="phone" type="text" v-model="dataUser.phone" :modelValue="dataUser.phone" />
                 </div>
-                <Button label="Modificar" icon="pi pi-user" class="p-button-success col-12 md:col-3 mr-2 mb-2" :loading="loading" @click="updateDataUser"></Button>
+
+                <Button v-if="!loadingProfile" label="Modificar" icon="pi pi-user" class="p-button-success col-12 md:col-3 mr-2 mb-2" :loading="loadingProfile" @click="updateDataUser"></Button>
+                <div class="flex justify-content-center mt-3">
+                    <ProgressSpinner v-show="loadingProfile" style="width: 50px; height: 50px" strokeWidth="8" fill="var(--surface-ground)" animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+                </div>
             </div>
         </div>
         <div class="col-12 md:col-6">
@@ -104,7 +110,10 @@ onMounted(async () => {
                     <label for="password1">Confirmar Contraseña</label>
                 </span>
                 <Toast />
-                <Button label="Modificar" icon="pi pi-unlock" class="p-button-success col-12 md:col-3 mr-2 mb-2 mt-5" :loading="loading" @click="updatePassword"></Button>
+                <Button v-if="!loading" label="Modificar" icon="pi pi-unlock" class="p-button-success col-12 md:col-3 mr-2 mb-2 mt-5" :loading="loading" @click="updatePassword"></Button>
+                <div class="flex justify-content-center mt-3">
+                    <ProgressSpinner v-show="loading" style="width: 50px; height: 50px" strokeWidth="8" fill="var(--surface-ground)" animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+                </div>
             </div>
         </div>
     </div>

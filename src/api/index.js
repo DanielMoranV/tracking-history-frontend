@@ -3,7 +3,7 @@ import axios from './axios';
 
 // Accesos
 /**
- * @url POST /access
+ * @url POST /auth
  * @since 1.0
  */
 
@@ -49,7 +49,7 @@ export const getPosition = () => axios.get('/role');
  * @url PUT /users/:dni
  * @since 1.0
  */
-export const updateUser = (dni, payload) => axios.put(`/users/${dni}`, payload);
+export const updateUser = (id, payload) => axios.put(`/users/${id}`, payload);
 /*
 
 /**
@@ -75,12 +75,6 @@ export const getUser = (dni) => axios.get(`/users/${dni}`);
  * @since 1.0
  */
 export const deleteUser = (dni) => axios.delete(`/users/${dni}`);
-
-/**
- * @url GET /users/currentuser
- * @since 1.0
- */
-export const currentUser = () => axios.get('/users/currentuser');
 
 /**
  * @url GET /category

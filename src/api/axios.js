@@ -15,7 +15,6 @@ instance.interceptors.request.use(
         const { token } = useAuthStore();
         if (token) {
             config.headers.Authorization = 'bearer ' + token;
-            console.log(config.headers);
         }
         return config;
     },
@@ -40,7 +39,7 @@ instance.interceptors.response.use(
         if (error.response.me) {
             errData = error.response.data;
 
-            if ([401, 403].indexOf(error.response.status) !== -1) {
+            if ([401, 403, 404].indexOf(error.response.status) !== -1) {
                 //useResponse().showAlert(errData);
                 console.log('if', errData);
             }

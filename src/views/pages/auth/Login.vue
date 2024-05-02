@@ -5,6 +5,7 @@ import { useAuthStore } from '../../../stores/auth';
 import { useToast } from 'primevue/usetoast';
 import { useRouter } from 'vue-router';
 
+const loading = ref(false);
 const router = useRouter();
 const toast = useToast();
 const dataUser = reactive({
@@ -15,6 +16,7 @@ const dataUser = reactive({
 const authStore = useAuthStore();
 const login = async () => {
     // Verificar si el correo electrónico y la contraseña son campos requeridos
+    loading.value = true;
     if (!dataUser.dni || !dataUser.password) {
         return toast.add({ severity: 'warn', summary: 'Por favor complete los campos requeridos', life: 3000 });
     }
@@ -44,9 +46,10 @@ const login = async () => {
                 break;
         }
     }
+    loading.value = false;
 };
 
-const checked = ref(false);
+//const checked = ref(false);
 </script>
 
 <template>
@@ -56,7 +59,7 @@ const checked = ref(false);
                 <div class="w-full surface-card py-8 px-5 sm:px-8" style="border-radius: 53px">
                     <div class="text-center mb-5">
                         <router-link to="/"><img src="/media/images/login/avatar.png" alt="Image" height="70" /></router-link>
-                        <div class="text-900 text-2xl font-medium mt-2">PORTAL DE TICKETS DE ATENCÍON</div>
+                        <div class="text-900 text-2xl font-medium mt-2">Sistema Clínica Santa Rosa</div>
                         <span class="text-600 font-medium">Ingrese sus credenciales para continuar</span>
                     </div>
 
@@ -68,19 +71,23 @@ const checked = ref(false);
                         <Password id="password" v-model="dataUser.password" placeholder="Ingrese su contraseña" :toggleMask="true" class="w-full mb-3" inputClass="w-full" :feedback="false"></Password>
 
                         <div class="flex align-items-center justify-content-between mb-5 gap-5">
-                            <div class="flex align-items-center">
+                            <!-- <div class="flex align-items-center">
                                 <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
                                 <label for="rememberme1">Recordarme</label>
-                            </div>
+                            </div> -->
                             <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)">Olvidaste tu contraseña?</a>
                         </div>
                         <Toast />
-                        <Button label="Iniciar Sesión" class="w-full p-3 text-xl" @click="login"></Button>
+                        <Button v-if="!loading" label="Iniciar Sesión" class="w-full p-3 text-xl" @click="login"></Button>
+                        <div class="flex justify-content-center mt-3">
+                            <ProgressSpinner v-show="loading" style="width: 50px; height: 50px" strokeWidth="8" fill="var(--surface-ground)" animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <AppConfig simple />
 </template>
 

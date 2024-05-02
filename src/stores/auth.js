@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import cache from '../utils/cache';
-import { sigin, currentUser, updateAccessUser, updateUser, logout, me } from '../api';
+import { sigin, updateAccessUser, updateUser, logout, me } from '../api';
 
 export const useAuthStore = defineStore({
     id: 'auth',
@@ -32,14 +32,15 @@ export const useAuthStore = defineStore({
     actions: {
         async login(payload) {
             try {
-                console.log(payload);
                 const data = await sigin(payload);
-                console.log(data);
                 cache.setItem('token', data);
+                this.accessToken = data;
                 const user = await me();
+                cache.setItem('user', user);
                 this.user = user;
                 this.sessionUser = true;
                 this.role = user.role;
+                console.log(user);
             } catch (error) {
                 this.msg = error.message;
                 this.user = null;
@@ -53,41 +54,20 @@ export const useAuthStore = defineStore({
             this.user = data;
             console.log(this.user);
         },
-        async logout(username) {
+        async logout() {
             this.user = null;
             this.sessionUser = false;
-            this.position = 'Invitado';
-            await logout({ username });
+            this.role = 'Invitado';
+            await logout();
             cache.cleanAll();
-        },
-        async currentUser() {
-            try {
-                const { data } = await currentUser();
-                const { email, phone } = data.user;
-                this.user.user.email = email;
-                this.user.user.phone = phone;
-                this.sessionUser = true;
-                this.position = this.user.position.name;
-                this.area = this.user.position.areaId !== 1 && this.user.position.areaId !== 11 && this.user.position.areaId !== 4 && this.user.position.areaId !== 2 && this.user.position.areaId !== 6 ? 'Colaborador' : this.user.position.areaId;
-            } catch (error) {
-                this.user = null;
-                this.sessionUser = false;
-                this.position = 'Invitado';
-            }
-        },
-        async updateAccessUser(payload) {
-            try {
-                const username = this.user.username;
-                const { data } = await updateAccessUser(username, payload);
-                return data.count;
-            } catch (error) {
-                console.log(error);
-            }
         },
         async updateDataUser(payload) {
             try {
-                const username = this.user.username;
-                const { data } = await updateUser(username, payload);
+                const id = this.user.id;
+                const data = await updateUser(id, payload);
+                data.role = cache.getItem('user').role;
+                cache.setItem('user', data);
+                console.log(data);
                 return data;
             } catch (error) {
                 console.log(error);

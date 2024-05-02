@@ -55,6 +55,11 @@ const router = createRouter({
                     component: () => import('@/views/user/TracingTickets.vue')
                 },
                 {
+                    path: '/trackinghistory',
+                    name: 'trackinghistory',
+                    component: () => import('@/views/user/TrackingHistory.vue')
+                },
+                {
                     path: '/tracingticketsBilling',
                     name: 'tracingticketsBilling',
                     component: () => import('@/views/admission/TracingTicketsBilling.vue')

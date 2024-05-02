@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useLayout } from '@/layout/composables/layout';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import cache from '../utils/cache';
 
 const { logout } = useAuthStore();
 const { layoutConfig, onMenuToggle } = useLayout();
@@ -10,20 +11,10 @@ const outsideClickListener = ref(null);
 const topbarMenuActive = ref(false);
 const router = useRouter();
 const dataUser = ref({ name: 'Bienvenido' });
-const authStore = useAuthStore();
-const getEssentialData = () => {
-    try {
-        if (authStore.sessionUser) {
-            const userData = authStore.getEsential;
-            dataUser.value = userData;
-        }
-    } catch (error) {
-        console.log(error);
-    }
-};
+
 onMounted(async () => {
-    await authStore.currentUser();
-    getEssentialData();
+    dataUser.value = cache.getItem('user');
+    dataUser.value.role = dataUser.value.role.toUpperCase();
     bindOutsideClickListener();
 });
 
@@ -31,18 +22,6 @@ const onProfileClick = () => {
     topbarMenuActive.value = false;
     router.push('/profile');
 };
-// Observa cambios en la sesión del usuario
-watch(
-    () => authStore.sessionUser,
-    async (newSession) => {
-        if (newSession) {
-            // La sesión del usuario ha cambiado, realiza acciones aquí
-            await authStore.currentUser();
-            getEssentialData();
-            //console.log('La sesión del usuario ha cambiado topbar:', newSession);
-        }
-    }
-);
 
 onBeforeUnmount(() => {
     unbindOutsideClickListener();
@@ -57,7 +36,7 @@ const onTopBarMenuButton = () => {
 const signOutClick = async () => {
     topbarMenuActive.value = false;
 
-    await logout(authStore.user.username);
+    await logout();
     router.push('/');
 };
 const topbarMenuClasses = computed(() => {
@@ -113,7 +92,7 @@ const isOutsideClicked = (event) => {
             </button>
             <button class="p-link layout-topbar-button">
                 <i class="pi pi-cog"></i>
-                <span>{{ dataUser.position }}</span>
+                <span>{{ dataUser.role }}</span>
             </button>
 
             <button @click="signOutClick()" class="p-link layout-topbar-button">
